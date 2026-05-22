@@ -29,6 +29,23 @@ struct Vector{
         return -1;
     }
 
+    double percent_occupied() {
+        return (size_ / capacity_) * 100
+    }
+
+    bool insert_at(unsigned int index, int value){
+        if (size_ < capacity_ && index <= size_) {
+            for (int i = size_ -1; i >= index; i--){
+                data[i+1] = data[i];
+            }
+
+            data[index] = value;
+            size++;
+            return true;
+        }
+        return false;
+    }
+
 
 
 
