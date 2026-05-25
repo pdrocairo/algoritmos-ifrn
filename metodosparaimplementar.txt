@@ -1,11 +1,17 @@
-bool remove_at(unsigned int index) 
-void push_back(int value) 
 void push_front(int value) 
-bool pop_back() 
-bool pop_front() 
-int front()
-int back()
-bool remove(int value) 
-int find(int value) 
-int count(int value) 
-int sum()
+
+
+
+
+
+
+
+index =3
+
+(0 1 2 3 4)      
+ 1 4 5 6 7
+
+(0 1 2 3 4)
+ 1 4 5 6 7
+
+ 4 5 6 7
