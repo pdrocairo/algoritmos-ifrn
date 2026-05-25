@@ -65,7 +65,7 @@ struct Vector{
                     //data[i] = value;
             data[size_] = value;
             size_++;
-                }
+                
         }
             
     }
@@ -175,11 +175,25 @@ struct Vector{
             size_++;
         }
     }
+};
 
+int main(){
+    Vector lista;
 
+    lista.push_back(1);
+    lista.push_back(15);
+    lista.push_back(21);
+    lista.push_back(3);
+    lista.push_back(5);
+    lista.push_back(7);
+    lista.push_back(9);
+    
+    lista.remove_at(3);
+    
+    lista.pop_back();
+    lista.pop_front();
 
-
-
-
-
+    for (unsigned int i = 0; i < lista.size(); i++) {
+        std::cout << lista.get_At(i) << " ";
+    }
 }
