@@ -69,6 +69,25 @@ class listaLigada {
         return ans;
     }
 
+    int get_at(int i){ 
+        int ans = -1;                                                         // criamos um ans para iterar durante o while
+        if (i < 0) {                                                          // se o indice pedido for igual ao ans ele para o while, pois achou o valor.
+            return -1;
+        }
 
+        node *current = this-> first;                                         // o ponteiro current comeca no primeiro e vai ate o this->last->next, que e nulo
+
+        while (current != nullptr) {
+            
+            if (i == ans) {
+                return current->value;                                        // se o indice for encontrado, retorna o valor do nó nesse indice
+            }
+
+            current = current->next;                                          // pula para o proximo nó
+            ans+=1;                                                           // adiciona mais 1 ao contador
+        }
+        
+        return -1;                                                            // caso nao retorne nada no while, retorna -1 para dizer que nao há valores (trocar futuramente)
+    }
 
 };
