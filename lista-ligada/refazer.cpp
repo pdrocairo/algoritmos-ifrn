@@ -12,6 +12,20 @@ class listaLigada {
             this->last = nullptr;
         }
 
+    int front() {
+        if (this->first != nullptr) {
+            return this->first->value;                                        // se o primeiro nó nao for nulo, retorna o valor do primeiro nó
+        }                                                                     // caso contrario, retorna -1 como um erro
+        return -1;
+    }
+
+    int back() {
+        if (this->last != nullptr) {
+            return this->last->value;                                        // se o ultimo nó nao for nulo, retorna o valor do primeiro nó
+        }                                                                    // caso contrario, retorna -1 como um erro
+        return -1;
+    }
+
     void push_front(int value) {
         node *new_node = new node;                                            // cria novo no
         new_node->value = value;                                              // atribui ao value do no, o valor inserido na funcao
@@ -34,5 +48,27 @@ class listaLigada {
         }
         this->last = new_node;                                                //agora o novo no sera o last
     }
+
+    int sum() {
+        int ans = 0;                                                          // criamos um acumulador para contar
+        node *current = this->first;                                          // criamos um ponteiro current para ir pulando de nó em nó
+        while (current !=nullptr) {                                           // enquanto o current nao for nulo, ou seja, nao estiver no this->last->next ele vai somando os values de cada nó percorrido
+            ans += current->value;
+            current = current->next;
+        }
+        return ans;
+    }
+
+    int size() {
+        int ans = 0;                                                          // criamos um acumulador para contar
+        node *current = this->first;                                          // criamos um ponteiro current para ir pulando de nó em nó
+        while (current != nullptr) {                                          // enquanto o current nao for nulo, ou seja, nao estiver no this->last->next ele vai contando quantos nós têm durante o percurso
+            ans += 1;
+            current = current->next;
+        }
+        return ans;
+    }
+
+
 
 };
