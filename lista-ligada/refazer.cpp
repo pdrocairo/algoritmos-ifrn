@@ -12,6 +12,15 @@ class listaLigada {
             this->last = nullptr;
         }
 
+        ~listaLigada() {
+            current = this->first;
+            while (current != nullptr) {
+                node *next_node = current->next;
+                delete current;
+                current = next_node;
+            }
+        }
+
     int front() {
         if (this->first != nullptr) {
             return this->first->value;                                        // se o primeiro nó nao for nulo, retorna o valor do primeiro nó
