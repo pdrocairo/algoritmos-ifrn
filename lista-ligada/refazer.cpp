@@ -13,7 +13,7 @@ class listaLigada {
         }
 
         ~listaLigada() {
-            current = this->first;
+            node *current = this->first;
             while (current != nullptr) {
                 node *next_node = current->next;
                 delete current;
@@ -79,7 +79,7 @@ class listaLigada {
     }
 
     int get_at(int i){ 
-        int ans = -1;                                                         // criamos um ans para iterar durante o while
+        int ans = 0;                                                         // criamos um ans para iterar durante o while
         if (i < 0) {                                                          // se o indice pedido for igual ao ans ele para o while, pois achou o valor.
             return -1;
         }
@@ -97,6 +97,80 @@ class listaLigada {
         }
         
         return -1;                                                            // caso nao retorne nada no while, retorna -1 para dizer que nao há valores (trocar futuramente)
+    }
+
+    bool set_at(int i, int value) {
+        if (i < 0) {
+            return false;
+        }
+        int ans = 0;
+
+        node *current = this-> first;
+
+        while (current != nullptr) {
+            if (i==ans) {
+                current->value = value;
+                return true;
+            }
+
+            current = current->next;
+            ans +=1;
+        }
+
+        return false;
+    }
+
+    void insert_after(unsigned int x, int value) {
+        node *current = this->first;
+
+        while (current != nullptr) {
+            if (current->value == x){
+                if (current == this->last){
+                    this->push_back(value);
+                    return;
+                }
+
+                node *new_node = new node;
+                new_node->value = value;
+                new_node->next = current->next;
+                current->next = new_node;
+                return;
+            }
+            current = current->next;
+        }
+        this->push_back(value);
+    }
+
+    bool remove_at(int i) {
+        if (i < 0 || i >= this->size()) {
+            return false;
+        } 
+
+        if (i == 0){
+            node *deletar = this->first;
+            this->first = this->first->next;
+            delete deletar;
+
+            if (this->first == nullptr){
+                this->last = nullptr;
+            }
+            return true;
+        }
+
+        node *current = this->first;
+        for (int ans = 0; ans < i - 1; ans++) {
+            current = current->next;                       
+        }
+
+        node *deletar = current->next;
+        current->next = deletar->next;            
+        
+        if (deletar == this->last){
+            this->last = current;
+        }
+
+        delete deletar;
+        return true;
     }
 
 };
