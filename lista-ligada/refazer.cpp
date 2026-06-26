@@ -173,4 +173,25 @@ class listaLigada {
         return true;
     }
 
+    void move_min_to_first() {
+
+        if (this->first == nullptr) {
+            return;
+        }
+        node *current = this->first->next;              //comeca o loop do segundo item da lista
+        node *menor = this->first;
+
+        while (current != nullptr) {
+            if (menor->value > current->value) {
+                menor = current;
+            }
+
+            current = current->next;
+        }
+        
+        int temporario = this->first->value;
+        this->first->value = menor->value;
+        menor->value = temporario;
+    }
+
 };
