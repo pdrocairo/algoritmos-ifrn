@@ -194,4 +194,30 @@ class listaLigada {
         menor->value = temporario;
     }
 
+    unsigned int contar_numeros(const listaLigada &other) {
+        node *current = this->first;
+        
+        int qtd = 0;
+        while (current != nullptr) {
+            node *current_other = other.first;
+            while (current_other != nullptr) {
+                if (current->value == current_other->value) {
+                    qtd += 1;
+                }
+                current_other = current_other->next;
+            }
+            current = current->next;
+            
+        }
+        return qtd;
+    }
+
+        void push_back_list(const listaLigada &other) {
+            node *current = other.first;
+            while (current != nullptr) {
+                this->push_back(current->value);
+                current = current->next;
+            }
+        }
+
 };
