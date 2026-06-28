@@ -1,12 +1,19 @@
-int labirinto_bt(int labirinto[20][20], int linha, int coluna, int l, ,int c) {
-	if (if l == linha || c == coluna || l == -1 || c == -1) {
+#include <iostream>
+
+int labirinto_bt(int labirinto[20][20], int linha, int coluna, int l, int c) {
+	if (l == linha || c == coluna || l == -1 || c == -1) {
+		return 0;
+	}
+
+	if (labirinto[l][c] == 1 || labirinto[l][c] == 9) {
 		return 0;
 	}
 	
 	if (c == coluna -1 && l == linha -1) {
 		return 1;
 	}
-}	labirinto[l][c] = 9;
+	
+	labirinto[l][c] = 9;
 
 	int ans = labirinto_bt(labirinto, linha, coluna, l+1, c) +   // baixo
 			  labirinto_bt(labirinto, linha, coluna, l, c + 1) + // direita
@@ -16,6 +23,7 @@ int labirinto_bt(int labirinto[20][20], int linha, int coluna, int l, ,int c) {
 	labirinto[l][c] = 0;
 	
 	return ans;
+}	
 	
 	
 int main(){
