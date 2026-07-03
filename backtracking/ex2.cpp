@@ -15,9 +15,9 @@ int labirinto(int mapa[20][20], int linha, int coluna, int l, int c) {
 
     mapa[l][c] = 9;
 
-    int ans = labirinto(mapa, linha, coluna, l+1, c) || //baixo
-              labirinto(mapa, linha, coluna, l-1, c) ||  //cima
-              labirinto(mapa, linha, coluna, l, c+1) ||  //direita 
+    int ans = labirinto(mapa, linha, coluna, l+1, c) + //baixo
+              labirinto(mapa, linha, coluna, l-1, c) +  //cima
+              labirinto(mapa, linha, coluna, l, c+1) +  //direita 
               labirinto(mapa, linha, coluna, l, c-1);  //esquerda
 
     mapa[l][c] = 0;
