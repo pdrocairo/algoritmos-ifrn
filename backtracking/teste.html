@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Labirinto - visualizador de backtracking</title>
+<style>
+  :root{
+    --bg: #16161a;
+    --surface: #1f1f24;
+    --surface-2: #26262c;
+    --border: #34343c;
+    --text: #eaeaef;
+    --text-muted: #9a9aa5;
+    --accent: #6c63d8;
+    --accent-bg: #2a2650;
+    --accent-text: #b6b0ff;
+    --danger: #d8635f;
+    --danger-bg: #3a2323;
+    --danger-text: #ff9d99;
+    --success: #4fbf8f;
+    --success-bg: #1e3a30;
+    --success-text: #7fe0ba;
+    --wall: #55555f;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  body{
+    margin: 0;
+    padding: 2rem 1rem 4rem;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+  }
+  .wrap{ width: 100%; max-width: 720px; }
+  h1{ font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  p.sub{ font-size: 14px; color: var(--text-muted); margin: 0 0 1.5rem; }
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  label{ font-size: 13px; color: var(--text-muted); display:block; margin-bottom: 4px; }
+  textarea{
+    width: 100%;
+    min-height: 120px;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    resize: vertical;
+  }
+  .row{ display:flex; gap: 12px; flex-wrap: wrap; margin-top: .75rem; }
+  .row > div{ flex: 1; min-width: 100px; }
+  input[type=text], input[type=number]{
+    width: 100%;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+  button{
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  button:hover{ background: #2c2c33; }
+  button:active{ transform: scale(0.98); }
+  button.primary{ background: var(--accent); border-color: var(--accent); color: white; }
+  button.primary:hover{ background: #7a70ea; }
+  .controls{ display:flex; align-items:center; gap:10px; flex-wrap: wrap; margin: 1rem 0; }
+  #stepLabel{ font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+  input[type=range]{ flex:1; min-width: 120px; accent-color: var(--accent); }
+  .stats{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+  .stat{ background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
+  .stat p.label{ font-size: 13px; color: var(--text-muted); margin: 0 0 4px; }
+  .stat p.value{ font-size: 24px; font-weight: 600; margin: 0; }
+  #grid{ display:grid; gap: 4px; margin-bottom: 1rem; }
+  .cell{
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    transition: background .15s, box-shadow .15s;
+  }
+  #logLine{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    min-height: 20px;
+  }
+  .error{ color: var(--danger-text); font-size: 13px; margin-top: 6px; }
+  .legend{ display:flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); margin-bottom: 1rem; }
+  .legend span{ display:inline-flex; align-items:center; gap: 6px; }
+  .swatch{ width: 12px; height: 12px; border-radius: 3px; display:inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Labirinto — visualizador de backtracking</h1>
+  <p class="sub">Edite o mapa abaixo (0 = livre, 1 = parede) e o início/fim, depois clique em gerar.</p>
+
+  <div class="panel">
+    <label for="mazeInput">Mapa (linhas separadas por quebra de linha, valores separados por espaço)</label>
+    <textarea id="mazeInput">0 1 1 0 0 0
+0 0 0 0 0 0
+0 1 0 1 0 0
+0 1 0 0 0 1
+0 0 0 1 0 0</textarea>
+    <div class="row">
+      <div>
+        <label for="startInput">Início (linha,coluna)</label>
+        <input type="text" id="startInput" value="0,0">
+      </div>
+      <div>
+        <label for="endInput">Fim (linha,coluna)</label>
+        <input type="text" id="endInput" value="4,5">
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button class="primary" id="btnGenerate" style="width:100%">Gerar labirinto</button>
+      </div>
+    </div>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--wall)"></span>parede</span>
+    <span><span class="swatch" style="background:var(--accent-bg); box-shadow: inset 0 0 0 1px var(--accent)"></span>marcada (pilha)</span>
+    <span><span class="swatch" style="background:var(--danger-bg); box-shadow: inset 0 0 0 1px var(--danger)"></span>tentativa bloqueada</span>
+    <span><span class="swatch" style="background:var(--success-bg); box-shadow: inset 0 0 0 1px var(--success)"></span>destino alcançado</span>
+  </div>
+
+  <div id="grid"></div>
+
+  <div class="controls">
+    <button id="btnReset" aria-label="Reiniciar">⏮</button>
+    <button id="btnPrev" aria-label="Passo anterior">◀</button>
+    <button id="btnPlay" class="primary" aria-label="Reproduzir">▶</button>
+    <button id="btnNext" aria-label="Próximo passo">▶|</button>
+    <span id="stepLabel">Passo 0 / 0</span>
+    <input type="range" id="scrub" min="0" max="0" value="0" step="1">
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="label">Caminhos encontrados</p>
+      <p class="value" id="pathCount">0</p>
+    </div>
+    <div class="stat">
+      <p class="label">Células na pilha atual</p>
+      <p class="value" id="stackDepth">0</p>
+    </div>
+  </div>
+
+  <div id="logLine">Pronto. Edite o mapa acima ou clique em reproduzir.</div>
+</div>
+
+<script>
+(function(){
+  let maze = [], ROWS = 0, COLS = 0, START = [0,0], DEST = [0,0];
+  let frames = [];
+  const key = (l,c) => l+','+c;
+
+  function parseMaze(){
+    const errEl = document.getElementById('errorMsg');
+    errEl.textContent = '';
+    try{
+      const raw = document.getElementById('mazeInput').value.trim();
+      const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length>0);
+      const parsed = lines.map(l => l.split(/\s+/).map(Number));
+      const cols = parsed[0].length;
+      for (const row of parsed){
+        if (row.length !== cols) throw new Error('Todas as linhas devem ter o mesmo número de colunas.');
+        for (const v of row){
+          if (v !== 0 && v !== 1) throw new Error('Use apenas 0 (livre) ou 1 (parede).');
+        }
+      }
+      maze = parsed;
+      ROWS = parsed.length;
+      COLS = cols;
+
+      const startRaw = document.getElementById('startInput').value.split(',').map(s => parseInt(s.trim(),10));
+      const endRaw = document.getElementById('endInput').value.split(',').map(s => parseInt(s.trim(),10));
+      if (startRaw.length!==2 || endRaw.length!==2 || startRaw.some(isNaN) || endRaw.some(isNaN)){
+        throw new Error('Formato de início/fim inválido. Use linha,coluna (ex: 0,0).');
+      }
+      if (startRaw[0]<0||startRaw[0]>=ROWS||startRaw[1]<0||startRaw[1]>=COLS){
+        throw new Error('Início fora dos limites do mapa.');
+      }
+      if (endRaw[0]<0||endRaw[0]>=ROWS||endRaw[1]<0||endRaw[1]>=COLS){
+        throw new Error('Fim fora dos limites do mapa.');
+      }
+      if (maze[startRaw[0]][startRaw[1]]===1) throw new Error('A célula de início é uma parede.');
+      if (maze[endRaw[0]][endRaw[1]]===1) throw new Error('A célula de fim é uma parede.');
+
+      START = startRaw;
+      DEST = endRaw;
+      return true;
+    } catch(e){
+      errEl.textContent = e.message;
+      return false;
+    }
+  }
+
+  function solve(l, c, parent, visited){
+    if (l<0 || c<0 || l>=ROWS || c>=COLS){
+      frames.push({type:'oob', target:[l,c], cursor:parent});
+      return 0;
+    }
+    if (maze[l][c]===1){
+      frames.push({type:'wall', target:[l,c], cursor:parent});
+      return 0;
+    }
+    if (visited.has(key(l,c))){
+      frames.push({type:'visited', target:[l,c], cursor:parent});
+      return 0;
+    }
+    if (l===DEST[0] && c===DEST[1]){
+      frames.push({type:'found', target:[l,c], cursor:[l,c]});
+      return 1;
+    }
+    visited.add(key(l,c));
+    frames.push({type:'enter', target:[l,c], cursor:[l,c]});
+    let ans = 0;
+    ans += solve(l+1,c,[l,c],visited);
+    ans += solve(l-1,c,[l,c],visited);
+    ans += solve(l,c+1,[l,c],visited);
+    ans += solve(l,c-1,[l,c],visited);
+    visited.delete(key(l,c));
+    frames.push({type:'backtrack', target:[l,c], cursor:parent});
+    return ans;
+  }
+
+  function messageFor(f){
+    const [l,c] = f.target;
+    if (f.type==='oob') return `(${l},${c}) fora do mapa -> retorna 0`;
+    if (f.type==='wall') return `(${l},${c}) e parede -> retorna 0`;
+    if (f.type==='visited') return `(${l},${c}) ja visitada nesse caminho -> retorna 0`;
+    if (f.type==='found') return `chegou no destino (${l},${c})! +1 caminho`;
+    if (f.type==='enter') return `entra em (${l},${c}) e marca como visitada (9)`;
+    if (f.type==='backtrack') return `backtrack: sai de (${l},${c}) e desmarca`;
+    return '';
+  }
+
+  function computeState(index){
+    const stackSet = new Set();
+    let pathCount = 0;
+    for (let i=0; i<=index; i++){
+      const f = frames[i];
+      if (f.type==='enter') stackSet.add(key(f.target[0], f.target[1]));
+      if (f.type==='backtrack') stackSet.delete(key(f.target[0], f.target[1]));
+      if (f.type==='found') pathCount++;
+    }
+    return { stackSet, pathCount };
+  }
+
+  let cells = [];
+  const gridEl = document.getElementById('grid');
+  const stepLabel = document.getElementById('stepLabel');
+  const scrub = document.getElementById('scrub');
+  const pathCountEl = document.getElementById('pathCount');
+  const stackDepthEl = document.getElementById('stackDepth');
+  const logLine = document.getElementById('logLine');
+
+  let currentIndex = -1;
+  let playing = false;
+  let timer = null;
+
+  function buildGrid(){
+    gridEl.innerHTML = '';
+    cells = [];
+    gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+    for (let l=0; l<ROWS; l++){
+      for (let c=0; c<COLS; c++){
+        const div = document.createElement('div');
+        div.className = 'cell';
+        gridEl.appendChild(div);
+        cells.push(div);
+      }
+    }
+  }
+
+  function cellAt(l,c){ return cells[l*COLS+c]; }
+
+  function render(index){
+    currentIndex = index;
+    for (let l=0; l<ROWS; l++){
+      for (let c=0; c<COLS; c++){
+        const div = cellAt(l,c);
+        const isWall = maze[l][c]===1;
+        const isStart = l===START[0] && c===START[1];
+        const isDest = l===DEST[0] && c===DEST[1];
+        div.textContent = isStart ? 'S' : (isDest ? 'F' : '');
+        div.style.boxShadow = 'none';
+        if (isWall){
+          div.style.background = 'var(--wall)';
+          div.style.color = '#0000';
+        } else {
+          div.style.background = 'var(--surface-2)';
+          div.style.color = (isStart || isDest) ? 'var(--accent-text)' : 'var(--text)';
+        }
+      }
+    }
+
+    if (index < 0){
+      stepLabel.textContent = `Passo 0 / ${frames.length}`;
+      pathCountEl.textContent = '0';
+      stackDepthEl.textContent = '0';
+      logLine.textContent = 'Pronto. Clique em reproduzir ou avance passo a passo.';
+      scrub.value = 0;
+      return;
+    }
+
+    const { stackSet, pathCount } = computeState(index);
+    stackSet.forEach(k => {
+      const [l,c] = k.split(',').map(Number);
+      const div = cellAt(l,c);
+      div.style.background = 'var(--accent-bg)';
+      div.style.color = 'var(--accent-text)';
+    });
+
+    const f = frames[index];
+    if (f.cursor){
+      const [pl,pc] = f.cursor;
+      if (pl>=0 && pc>=0 && pl<ROWS && pc<COLS){
+        cellAt(pl,pc).style.boxShadow = 'inset 0 0 0 2px var(--accent)';
+      }
+    }
+    const [tl,tc] = f.target;
+    if (tl>=0 && tc>=0 && tl<ROWS && tc<COLS){
+      const div = cellAt(tl,tc);
+      if (f.type==='found'){
+        div.style.background = 'var(--success-bg)';
+        div.style.color = 'var(--success-text)';
+        div.style.boxShadow = 'inset 0 0 0 2px var(--success)';
+      } else if (f.type==='wall' || f.type==='visited' || f.type==='oob'){
+        div.style.boxShadow = 'inset 0 0 0 2px var(--danger)';
+      } else if (f.type==='enter'){
+        div.style.boxShadow = 'inset 0 0 0 2px var(--accent)';
+      } else if (f.type==='backtrack'){
+        div.style.background = 'var(--surface-2)';
+        div.style.color = 'var(--text)';
+        div.style.boxShadow = 'inset 0 0 0 2px var(--border)';
+      }
+    }
+
+    stepLabel.textContent = `Passo ${index+1} / ${frames.length}`;
+    pathCountEl.textContent = String(pathCount);
+    stackDepthEl.textContent = String(stackSet.size);
+    logLine.textContent = messageFor(f);
+    scrub.value = index;
+  }
+
+  function step(delta){
+    let next = currentIndex + delta;
+    if (next < -1) next = -1;
+    if (next > frames.length-1) next = frames.length-1;
+    render(next);
+    if (next >= frames.length-1) pause();
+  }
+
+  function pause(){
+    playing = false;
+    document.getElementById('btnPlay').textContent = '▶';
+    if (timer) clearInterval(timer);
+  }
+
+  function play(){
+    if (frames.length===0) return;
+    if (currentIndex >= frames.length-1) render(-1);
+    playing = true;
+    document.getElementById('btnPlay').textContent = '⏸';
+    timer = setInterval(() => { step(1); }, 180);
+  }
+
+  function generate(){
+    pause();
+    if (!parseMaze()) return;
+    frames = [];
+    solve(START[0], START[1], null, new Set());
+    scrub.max = frames.length>0 ? frames.length-1 : 0;
+    buildGrid();
+    render(-1);
+  }
+
+  document.getElementById('btnGenerate').addEventListener('click', generate);
+  document.getElementById('btnNext').addEventListener('click', () => { pause(); step(1); });
+  document.getElementById('btnPrev').addEventListener('click', () => { pause(); step(-1); });
+  document.getElementById('btnReset').addEventListener('click', () => { pause(); render(-1); });
+  document.getElementById('btnPlay').addEventListener('click', () => { playing ? pause() : play(); });
+  scrub.addEventListener('input', (e) => { pause(); render(Number(e.target.value)); });
+
+  generate();
+})();
+</script>
+</body>
+</html>
